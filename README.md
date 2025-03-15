@@ -6,6 +6,7 @@ Sketch of initial thinking on my ERD and the data your project will be accessing
 
 Sketch rough system design of your project, what are the technologies and pieces (shapes) and interactions (arrows) (this will also ideally be replaced over the course of the project)
 ![IMG_0255](https://github.com/user-attachments/assets/adfef1a4-269f-466b-8f9d-81f74c836f09)
+I will be using python beautiful soup instead of my initial ideas. It seems to be the best way, and I will most likely scrape Basketball reference.
 
 ## Goals for where I want my project to be at the following dates:
 * 3/19 - Ugly website up, script scraping ESPN/Basketball Reference sort of working (at least grabs some data, not everything)
