@@ -17,3 +17,6 @@ I will be using python beautiful soup instead of my initial ideas. It seems to b
 
 Please include any additional relevant information you'd like to include or have. The website will be fairly simple as far as UX, but it will have the player's faces by the leading scorer and other stats for that day/week. I would like to store the stats historically, and hopefully be able to filter them by week. This will likely take going backwards and adding some data to test the website.
 
+3/19 
+* The script is grabbing data, and converting it into a csv file. I have not yet made the script run on a consistent time scale, nor have I set up my database configuration yet. The basics for connecting the backend and frontend are working. This should be leading me to being able to develop the frontend aspects, and then start making my queries based off of user input.
+![image](https://github.com/user-attachments/assets/5e6518e1-7bc1-49e4-8e58-f7cc8d62594a)
