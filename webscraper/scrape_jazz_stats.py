@@ -3,8 +3,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
 
-# URL for the Utah Jazz stats for 2025 season, need to update if this goes through 2026/if I want to go back to 2024
-url = "https://www.basketball-reference.com/teams/UTA/2025.html"
+# URL for the Utah Jazz stats for the 2025 season
+url = "https://www.basketball-reference.com/teams/UTA/2025.html#per_game_stats"
 
 response = requests.get(url)
 
@@ -16,10 +16,17 @@ else:
 
 soup = BeautifulSoup(response.text, 'html.parser')
 
-table = soup.find('table', {'id': 'team_stats'})
+# Find the correct table with id 'per_game_stats'
+table = soup.find('table', {'id': 'per_game_stats'})
 
-headers = [th.get_text() for th in table.find_all('th')]
+# Look for the 'thead' section for headers
+thead = table.find('thead')
+headers = [th.get_text() for th in thead.find_all('th')]
 
+# Print headers to inspect them
+print("Headers:", headers)
+
+# Now find the table rows and process the data
 rows = table.find_all('tr')
 
 stats_data = []
@@ -32,14 +39,15 @@ for row in rows:
     if player_stats:  # Only include rows with actual player data (skip headers)
         stats_data.append(player_stats)
 
-# Convert the data into a DataFrame
-df = pd.DataFrame(stats_data, columns=headers[1:])  # Exclude the 'Rk' column (rank column)
+# Convert the data into a DataFrame, excluding the 'Rk' column (rank column)
+df = pd.DataFrame(stats_data, columns=headers[1:])  # Exclude the 'Rk' column
 
 # Add a column for the date the data was scraped
 df['date'] = datetime.today().strftime('%Y-%m-%d')
 
-# Save the data to a CSV file (you can store it in a database as well)
-df.to_csv('jazz_2025_stats.csv', mode='a', header=False, index=False)
+# Save the data to a CSV file
+df.to_csv('jazz_2025_per_game_stats.csv', mode='a', header=False, index=False)
 
 # Display the data for verification
 print(df.head())
+
