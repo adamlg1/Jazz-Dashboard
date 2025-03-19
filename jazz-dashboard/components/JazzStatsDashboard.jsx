@@ -51,6 +51,7 @@ function JazzStatsDashboard() {
                             <td>{player.assists}</td>
                             <td>{player.steals}</td>
                             <td>{player.blocks}</td>
+                            <td>{player['+/-']}</td>
                         </tr>
                     ))}
                 </tbody>
