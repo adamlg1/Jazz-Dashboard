@@ -46,7 +46,7 @@ df = pd.DataFrame(stats_data, columns=headers[1:])  # Exclude the 'Rk' column
 df['date'] = datetime.today().strftime('%Y-%m-%d')
 
 # Save the data to a CSV file
-df.to_csv('jazz_2025_per_game_stats.csv', mode='a', header=False, index=False)
+df.to_csv('jazz_2025_per_game_stats.csv', mode='w', header=True, index=False)
 
 # Display the data for verification
 print(df.head())

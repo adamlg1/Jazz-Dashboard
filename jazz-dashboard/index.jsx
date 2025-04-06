@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client'; // For React 18 and above
+import ReactDOM from 'react-dom/client';
 import './index.css';
 import JazzStatsDashboard from './components/JazzStatsDashboard';
 
