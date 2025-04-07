@@ -16,6 +16,8 @@ const jazzStats = [
     // Add more player data as needed
 ];
 
+// app.use('/api/auth', authRoutes);
+
 // Endpoint to get jazz stats
 app.get('/api/jazz-stats', (req, res) => {
     res.json(jazzStats);  // Send the sample data as JSON
