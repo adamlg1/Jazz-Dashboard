@@ -9,7 +9,7 @@ function JazzStatsDashboard() {
 
     // Fetch stats when the component mounts
     useEffect(() => {
-        fetch('http://localhost:5000/api/jazz-stats')
+        fetch('http://localhost:5000/api/stats')
             .then((response) => response.json())
             .then((data) => {
                 setStats(data);
@@ -26,7 +26,7 @@ function JazzStatsDashboard() {
         return stats.sort((a, b) => b[sortBy] - a[sortBy]);
     };
 
-    // Filter stats by player or stat (if needed)
+    // Filter stats by player position (if needed)
     const filterStats = (stats, filterBy) => {
         if (filterBy === 'all') return stats;
         return stats.filter((player) => player.position === filterBy);
@@ -80,13 +80,13 @@ function JazzStatsDashboard() {
                 <tbody>
                     {sortedStats.map((player) => (
                         <tr key={player.id}>
-                            <td>{player.player}</td>
+                            <td>{player.player_name}</td>  {/* Updated to match player_name */}
                             <td>{player.points}</td>
                             <td>{player.rebounds}</td>
                             <td>{player.assists}</td>
                             <td>{player.steals}</td>
                             <td>{player.blocks}</td>
-                            <td>{player['+/-']}</td>
+                            <td>{player['+/-']}</td>  {/* Handle the + sign in key */}
                         </tr>
                     ))}
                 </tbody>

@@ -2,6 +2,17 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import datetime
+from supabase import create_client, Client
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Initialize Supabase client
+url = os.getenv("SUPABASE_URL")  
+key = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(url, key)
 
 # URL for the Utah Jazz stats for the 2025 season
 url = "https://www.basketball-reference.com/teams/UTA/2025.html#per_game_stats"
@@ -45,9 +56,46 @@ df = pd.DataFrame(stats_data, columns=headers[1:])  # Exclude the 'Rk' column
 # Add a column for the date the data was scraped
 df['date'] = datetime.today().strftime('%Y-%m-%d')
 
-# Save the data to a CSV file
-df.to_csv('jazz_2025_per_game_stats.csv', mode='w', header=True, index=False)
+# Loop through the DataFrame rows and insert each row into Supabase
+for index, row in df.iterrows():
+    data = {
+        'player_name': row['Player'],  # Ensure the column names match your table's columns
+        'age': row['Age'],
+        'position': row['Pos'],
+        'games_played': row['G'],
+        'games_started': row['GS'],
+        'minutes_per_game': row['MP'],
+        'fg_made': row['FG'],
+        'fg_attempted': row['FGA'],
+        'fg_percentage': row['FG%'],
+        'three_p_made': row['3P'],
+        'three_p_attempted': row['3PA'],
+        'three_p_percentage': row['3P%'],
+        'two_p_made': row['2P'],
+        'two_p_attempted': row['2PA'],
+        'two_p_percentage': row['2P%'],
+        'effective_fg_percentage': row['eFG%'],
+        'free_throws_made': row['FT'],
+        'free_throws_attempted': row['FTA'],
+        'free_throws_percentage': row['FT%'],
+        'offensive_rebounds': row['ORB'],
+        'defensive_rebounds': row['DRB'],
+        'total_rebounds': row['TRB'],
+        'assists': row['AST'],
+        'steals': row['STL'],
+        'blocks': row['BLK'],
+        'turnovers': row['TOV'],
+        'personal_fouls': row['PF'],
+        'points': row['PTS'],
+        'awards': row['Awards'] if pd.notnull(row['Awards']) else '',  # Handle missing data
+        'date': row['date']
+    }
 
-# Display the data for verification
-print(df.head())
+    # Insert the row into the Supabase table using the correct syntax
+    response = supabase.table('jazz_stats').insert([data]).execute()
 
+    # Check if insertion was successful
+    if response.data:
+        print(f"Successfully inserted data for {row['Player']}")
+    else:
+        print(f"Error inserting data for {row['Player']}: {response.error_message}")
