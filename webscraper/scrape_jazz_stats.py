@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Initialize Supabase client
-url = os.getenv("SUPABASE_URL")  
+url = os.getenv("SUPABASE_URL")
 key = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
@@ -56,45 +56,58 @@ df = pd.DataFrame(stats_data, columns=headers[1:])  # Exclude the 'Rk' column
 # Add a column for the date the data was scraped
 df['date'] = datetime.today().strftime('%Y-%m-%d')
 
+# Function to handle empty or invalid numeric fields and convert them to None (NULL in DB)
+def safe_float(value):
+    try:
+        return float(value) if value and value != " " else None
+    except ValueError:
+        return None
+
+# Function to safely convert float to integer
+def safe_int(value):
+    try:
+        return int(float(value)) if value and value != " " else None
+    except ValueError:
+        return None
+
 # Loop through the DataFrame rows and insert each row into Supabase
 for index, row in df.iterrows():
     data = {
-        'player_name': row['Player'],  # Ensure the column names match your table's columns
-        'age': row['Age'],
+        'player_name': row['Player'],
+        'age': safe_int(row['Age']),
         'position': row['Pos'],
-        'games_played': row['G'],
-        'games_started': row['GS'],
-        'minutes_per_game': row['MP'],
-        'fg_made': row['FG'],
-        'fg_attempted': row['FGA'],
-        'fg_percentage': row['FG%'],
-        'three_p_made': row['3P'],
-        'three_p_attempted': row['3PA'],
-        'three_p_percentage': row['3P%'],
-        'two_p_made': row['2P'],
-        'two_p_attempted': row['2PA'],
-        'two_p_percentage': row['2P%'],
-        'effective_fg_percentage': row['eFG%'],
-        'free_throws_made': row['FT'],
-        'free_throws_attempted': row['FTA'],
-        'free_throws_percentage': row['FT%'],
-        'offensive_rebounds': row['ORB'],
-        'defensive_rebounds': row['DRB'],
-        'total_rebounds': row['TRB'],
-        'assists': row['AST'],
-        'steals': row['STL'],
-        'blocks': row['BLK'],
-        'turnovers': row['TOV'],
-        'personal_fouls': row['PF'],
-        'points': row['PTS'],
-        'awards': row['Awards'] if pd.notnull(row['Awards']) else '',  # Handle missing data
+        'games_played': safe_int(row['G']),
+        'games_started': safe_int(row['GS']),
+        'minutes_per_game': safe_float(row['MP']),
+        'fg_made': safe_float(row['FG']),
+        'fg_attempted': safe_float(row['FGA']),
+        'fg_percentage': safe_float(row['FG%']),
+        'three_p_made': safe_float(row['3P']),
+        'three_p_attempted': safe_float(row['3PA']),
+        'three_p_percentage': safe_float(row['3P%']),
+        'two_p_made': safe_float(row['2P']),
+        'two_p_attempted': safe_float(row['2PA']),
+        'two_p_percentage': safe_float(row['2P%']),
+        'effective_fg_percentage': safe_float(row['eFG%']),
+        'free_throws_made': safe_float(row['FT']),
+        'free_throws_attempted': safe_float(row['FTA']),
+        'free_throws_percentage': safe_float(row['FT%']),
+        'offensive_rebounds': safe_float(row['ORB']),
+        'defensive_rebounds': safe_float(row['DRB']),
+        'total_rebounds': safe_float(row['TRB']),
+        'assists': safe_float(row['AST']),
+        'steals': safe_float(row['STL']),
+        'blocks': safe_float(row['BLK']),
+        'turnovers': safe_float(row['TOV']),
+        'personal_fouls': safe_float(row['PF']),
+        'points': safe_float(row['PTS']),
+        'awards': row['Awards'] if pd.notnull(row['Awards']) else '',
         'date': row['date']
     }
 
     # Insert the row into the Supabase table using the correct syntax
     response = supabase.table('jazz_stats').insert([data]).execute()
 
-    # Check if insertion was successful
     if response.data:
         print(f"Successfully inserted data for {row['Player']}")
     else:

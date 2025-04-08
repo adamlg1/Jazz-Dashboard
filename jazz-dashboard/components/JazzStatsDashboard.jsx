@@ -74,7 +74,13 @@ function JazzStatsDashboard() {
                         <th>Assists</th>
                         <th>Steals</th>
                         <th>Blocks</th>
-                        <th>Plus-Minus</th>
+                        <th>FG%</th>
+                        <th>3P%</th>
+                        <th>FT%</th>
+                        <th>Minutes</th>
+                        <th>Games Played</th>
+                        <th>Games Started</th>
+                        {/* <th>+/-</th> */}
                     </tr>
                 </thead>
                 <tbody>
@@ -82,11 +88,17 @@ function JazzStatsDashboard() {
                         <tr key={player.id}>
                             <td>{player.player_name}</td>  {/* Updated to match player_name */}
                             <td>{player.points}</td>
-                            <td>{player.rebounds}</td>
+                            <td>{player.total_rebounds}</td>
                             <td>{player.assists}</td>
                             <td>{player.steals}</td>
                             <td>{player.blocks}</td>
-                            <td>{player['+/-']}</td>  {/* Handle the + sign in key */}
+                            <td>{player.fg_percentage ? (player.fg_percentage * 100).toFixed(1) + "%" : "N/A"}</td>  {/* Format percentages */}
+                            <td>{player.three_p_percentage ? (player.three_p_percentage * 100).toFixed(1) + "%" : "N/A"}</td>
+                            <td>{player.free_throws_percentage ? (player.free_throws_percentage * 100).toFixed(1) + "%" : "N/A"}</td>
+                            <td>{player.minutes_per_game}</td>
+                            <td>{player.games_played}</td>
+                            <td>{player.games_started}</td>
+                            {/* <td>{player['+/-']}</td>  Handle the + sign in key */}
                         </tr>
                     ))}
                 </tbody>

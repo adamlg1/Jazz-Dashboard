@@ -5,7 +5,6 @@
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
-    /* Light gray background for a minimal look */
 }
 
 .chat-box {
@@ -23,7 +22,6 @@
 
 .messages {
     flex: 1;
-    overflow-y: auto;
     margin-bottom: 10px;
     padding-right: 10px;
 }
@@ -60,6 +58,16 @@
     border-radius: 20px;
     outline: none;
     margin-right: 10px;
+    resize: both;
+    /* Enable both horizontal and vertical resizing */
+    overflow-y: hidden;
+    /* Remove the scrollbar completely */
+    transition: height 0.2s ease;
+    /* Smooth transition for height changes */
+    min-height: 50px;
+    /* Set a minimum height */
+    max-height: 200px;
+    /* Set a maximum height */
 }
 
 .chat-input:focus {

@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../css/chat.css';
 
 function ChatBot() {
-    const [query, setQuery] = useState('');
-    const [messages, setMessages] = useState([]);  // Track all messages (user and bot)
-    const [loading, setLoading] = useState(false);
+    const [query, setQuery] = useState('');          // User's typed query
+    const [messages, setMessages] = useState([]);    // Track all messages (user and bot)
+    const [loading, setLoading] = useState(false);   // Track if bot is processing the query
     const [statsData, setStatsData] = useState([]);  // To store player stats
+    const messagesEndRef = useRef(null);             // Reference to the end of the messages container
+    const inputRef = useRef(null);                    // Reference to the input (textarea) field
 
     // Fetch player stats when the component is mounted
     useEffect(() => {
@@ -22,12 +24,24 @@ function ChatBot() {
         fetchStats();  // Call the function to fetch stats
     }, []);
 
-    const handleSubmit = async () => {
-        setLoading(true);
-        const newUserMessage = { role: "user", content: query };  // Prepare user's message
+    useEffect(() => {
+        // Scroll to the bottom whenever the messages change
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]); // Trigger scroll on messages change
 
-        // Add user's message to the message history
-        setMessages(prevMessages => [...prevMessages, newUserMessage]);
+    const handleSubmit = async () => {
+        if (!query.trim()) return; // Prevent submission if the query is empty
+
+        setLoading(true);
+
+        // Add the user's message to the message history
+        const newUserMessage = { role: "user", content: query };
+
+        // Add the user's message and immediately show "Asking..." for the bot
+        setMessages(prevMessages => [...prevMessages, newUserMessage, { role: "bot", content: "Asking..." }]);
+
+        // Clear the query input field after the message is submitted
+        setQuery('');
 
         try {
             const res = await fetch('http://localhost:5000/api/chat', {
@@ -46,16 +60,41 @@ function ChatBot() {
             const data = await res.json();
             const botMessage = { role: "bot", content: data.answer };  // Prepare bot's response
 
-            // Add bot's response to the message history
-            setMessages(prevMessages => [...prevMessages, botMessage]);
+            // Replace the last "Asking..." message with the bot's response, but keep the user's message
+            setMessages(prevMessages => {
+                const updatedMessages = [...prevMessages];
+                updatedMessages[updatedMessages.length - 1] = botMessage; // Replace the last "Asking..." message
+                return updatedMessages;
+            });
         } catch (error) {
             console.error('Error fetching response:', error);
             const errorMessage = { role: "bot", content: 'Error fetching response from the server.' };
-            setMessages(prevMessages => [...prevMessages, errorMessage]);
+            setMessages(prevMessages => {
+                const updatedMessages = [...prevMessages];
+                updatedMessages[updatedMessages.length - 1] = errorMessage; // Replace the last "Asking..." message with an error message
+                return updatedMessages;
+            });
         } finally {
             setLoading(false);
-            setQuery('');  // Clear the input field after the message is sent
         }
+    };
+
+    // Handle pressing Enter key to submit the message
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {  // Submit only when Enter is pressed without Shift
+            event.preventDefault(); // Prevent a new line from being added
+            handleSubmit();
+        }
+    };
+
+    // Handle the change in the textarea (to dynamically adjust the size)
+    const handleInputChange = (event) => {
+        setQuery(event.target.value);
+
+        // Resize the textarea based on content
+        const textarea = inputRef.current;
+        textarea.style.height = "auto";  // Reset the height before calculating new height
+        textarea.style.height = `${textarea.scrollHeight}px`;  // Adjust height based on content
     };
 
     return (
@@ -68,16 +107,19 @@ function ChatBot() {
                             {msg.content}
                         </div>
                     ))}
-                    {loading && <div className="bot-message">Asking...</div>}
+                    {/* Empty div to scroll to the bottom */}
+                    <div ref={messagesEndRef} />
                 </div>
                 <div className="input-container">
-                    <input
-                        type="text"
+                    <textarea
+                        ref={inputRef}
                         className="chat-input"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={handleInputChange} // Handle the input change for dynamic resizing
+                        onKeyDown={handleKeyPress}  // Add event listener for Enter key
                         placeholder="Ask me anything about Utah Jazz!"
                         autoFocus
+                        rows={1}  // Start with 1 row (for initial height)
                     />
                     <button className="chat-send-button" onClick={handleSubmit} disabled={loading}>
                         Send
