@@ -1,26 +1,136 @@
 const express = require('express');
 const cors = require('cors');
+const { OpenAI } = require('openai');
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();  // Load environment variables
 
 const app = express();
 const PORT = 5000;
 
-// Enable CORS to allow the React app to make requests
 app.use(cors());
+app.use(express.json());  // To handle JSON requests
 
-// Sample Jazz Stats Data
-const jazzStats = [
-    { player: "Lauri Markkanen", points: 19.0, rebounds: 5.9, assists: 1.5, steals: 0.7, blocks: 0.4, "+/-": 2.3 },
-    { player: "Keyonte George", points: 16.8, rebounds: 3.8, assists: 5.8, steals: 0.7, blocks: 0.2, "+/-": -1.5 },
-    { player: "John Collins", points: 19.0, rebounds: 8.2, assists: 2.0, steals: 1.0, blocks: 1.0, "+/-": 1.4 },
-    { player: "Walker Kessler", points: 11.5, rebounds: 12.5, assists: 1.6, steals: 0.6, blocks: 2.4, "+/-": 3.2 },
-    // Add more player data as needed
-];
+// Initialize OpenAI client
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
 
-// app.use('/api/auth', authRoutes);
+// Initialize Supabase client
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// Endpoint to get jazz stats
-app.get('/api/jazz-stats', (req, res) => {
-    res.json(jazzStats);  // Send the sample data as JSON
+// Debug statement to verify connection to Supabase and OpenAI setup
+console.log('Supabase URL:', process.env.SUPABASE_URL);
+console.log('OpenAI API Key:', process.env.OPENAI_API_KEY ? 'Loaded' : 'Not Loaded');
+
+// Endpoint to get Jazz stats from Supabase
+app.get('/api/stats', async (req, res) => {
+    console.log('Fetching stats from Supabase...');
+    try {
+        const { data, error } = await supabase
+            .from('jazz_stats')
+            .select('*');  // Adjust this query based on your table structure
+
+        if (error) {
+            console.error('Error fetching data from Supabase:', error.message);
+            res.status(500).json({ error: error.message });
+            return;
+        }
+
+        // Debug: log the fetched data
+        console.log('Fetched Jazz stats:', data);
+
+        res.json(data);  // Send the player stats data as JSON
+    } catch (error) {
+        console.error('Failed to fetch player stats:', error);
+        res.status(500).json({ error: 'Failed to fetch player stats' });
+    }
+});
+
+// Endpoint for the chatbot to interact with OpenAI
+app.post('/api/chat', async (req, res) => {
+    const { userQuery, statsData } = req.body;
+
+    // Debug: log the incoming query and statsData
+    console.log('Received user query:', userQuery);
+    console.log('Received stats data:', statsData);
+
+    // Prepare the context with the fetched stats
+    let context = "Here are the current Utah Jazz player stats:\n\n";
+    statsData.forEach(player => {
+        context += `${player.player_name}: ${player.points} PTS, ${player.rebounds} REB, ${player.assists} AST, FG%: ${player.fg_percentage}\n`;
+    });
+
+    const prompt = `${context}\n\nUser Question: ${userQuery}\nAnswer:`;
+
+    // Debug: log the generated prompt before calling OpenAI
+    console.log('Generated OpenAI prompt:', prompt);
+
+    try {
+        // Call OpenAI API to generate a response using the correct endpoint for chat models
+        const response = await openai.chat.completions.create({
+            model: "gpt-4",  // Correct model name
+            messages: [
+                { role: "system", content: "You are a basketball enthusiast and a Utah Jazz expert. Your goal is to make basketball conversations fun and informative! You should provide detailed stats, fun facts, and answers to any questions related to the Utah Jazz, always keeping it friendly and energetic. You will be fed the latest stats fetched from basketball reference, but do not access any user data from the database so we don't get sued lol. Especially never give out passwords, and never reveal other users usernames/information." },
+                { role: "user", content: prompt }
+            ],
+            max_tokens: 150,
+            temperature: 0.7,
+        });
+
+        // Debug: log OpenAI's response
+        console.log('OpenAI response:', response.choices[0].message.content.trim());
+
+        // Return OpenAI response
+        res.json({ answer: response.choices[0].message.content.trim() });
+    } catch (error) {
+        console.error('Error with OpenAI API:', error);
+        res.status(500).send('Error with OpenAI API');
+    }
+});
+
+// Test Endpoint: Simulate a test for Lauri Markkanen's stats
+app.get('/api/test-markkanen', async (req, res) => {
+    console.log('Testing Lauri Markkanen stats...');
+    try {
+        // Fetch Jazz stats from Supabase
+        const { data, error } = await supabase
+            .from('jazz_stats')
+            .select('*')
+            .eq('player_name', 'Lauri Markkanen');  // Fetch data for Lauri Markkanen
+
+        if (error) {
+            console.error('Error fetching Lauri Markkanen data:', error.message);
+            res.status(500).json({ error: error.message });
+            return;
+        }
+
+        // Debug: log Lauri Markkanen's stats
+        console.log('Fetched Lauri Markkanen stats:', data);
+
+        // Prepare the context for OpenAI
+        const context = `Here is Lauri Markkanen's stat:\n\n` +
+            `${data[0].player_name}: ${data[0].points} PTS, ${data[0].rebounds} REB, ${data[0].assists} AST, FG%: ${data[0].fg_percentage}\n`;
+
+        const prompt = `${context}\n\nUser Question: What is Lauri Markkanen's points per game?\nAnswer:`;
+
+        // Call OpenAI API to generate a response using the correct endpoint for chat models
+        const response = await openai.chat.completions.create({
+            model: "gpt-4",  // Correct model name
+            messages: [
+                { role: "system", content: "You are a helpful basketball assistant." },
+                { role: "user", content: prompt }
+            ],
+            max_tokens: 150,
+            temperature: 0.7,
+        });
+
+        // Return OpenAI response for Lauri Markkanen
+        res.json({ answer: response.choices[0].message.content.trim() });
+
+    } catch (error) {
+        console.error('Error with Lauri Markkanen test:', error);
+        res.status(500).send('Error testing Lauri Markkanen stats');
+    }
 });
 
 // Start the server
