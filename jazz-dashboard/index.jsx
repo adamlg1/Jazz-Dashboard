@@ -5,6 +5,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import JazzStatsDashboard from './components/JazzStatsDashboard';
 import Login from './components/login';
 import About from './components/about';
+import ChatBot from './components/chatbot';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Header from './components/header';
@@ -20,7 +21,7 @@ root.render(
                 <Route path="/login" element={<Login />} />
                 <Route path="/about" element={<About />} />  {/* Add route for About page */}
                 <Route path="/stats" element={<JazzStatsDashboard />} />
-
+                <Route path="/chat" element={<ChatBot />} />
             </Routes>
         </BrowserRouter>
     </React.StrictMode>
