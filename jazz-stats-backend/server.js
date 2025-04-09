@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { OpenAI } = require('openai');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();  // Load environment variables
+require('dotenv').config();
 
 const app = express();
 const PORT = 5000;
@@ -18,9 +18,71 @@ const openai = new OpenAI({
 // Initialize Supabase client
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
+const JWT_SECRET = process.env.JWT_SECRET;
+
 // Debug statement to verify connection to Supabase and OpenAI setup
 console.log('Supabase URL:', process.env.SUPABASE_URL);
 console.log('OpenAI API Key:', process.env.OPENAI_API_KEY ? 'Loaded' : 'Not Loaded');
+
+app.post('/api/register', async (req, res) => {
+    const { email, password } = req.body;
+
+    // Check if both email and password are provided
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required.' });
+    }
+
+    try {
+        // Supabase registration logic
+        const { user, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+        });
+
+        // Check if there was an error during the sign-up process
+        if (error) {
+            return res.status(400).json({ message: error.message });
+        }
+
+        // Respond with success message
+        res.status(201).json({ message: 'User registered successfully!', user });
+    } catch (err) {
+        console.error('Registration error:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+// User Login
+app.post('/api/login', async (req, res) => {
+    //username needed to be chnged to email
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Username and password are required.' });
+    }
+
+    try {
+        // Supabase Auth signIn
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,  // Supabase uses email for authentication
+            password: password,
+        });
+
+        if (error) {
+            return res.status(400).json({ error: error.message });
+        }
+
+        // Optionally, create a JWT token to return to the frontend
+        // Here, you could use JWT to create a custom token
+        const token = jwt.sign(data, JWT_SECRET);
+
+        res.status(200).json({ message: 'Login successful!', user: data });
+    } catch (err) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 
 // Endpoint to get Jazz stats from Supabase
 app.get('/api/stats', async (req, res) => {
