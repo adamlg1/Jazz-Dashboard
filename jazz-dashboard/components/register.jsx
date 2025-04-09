@@ -1,17 +1,16 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify'; // Import toast function
+import 'react-toastify/dist/ReactToastify.css'; // Import styles for toast
 
 function Register() {
-    // Declare state for email, password, and error
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    // Handle form submission for registration
     const handleRegister = async (e) => {
-        e.preventDefault();  // Prevent the default form submission
+        e.preventDefault();  // Prevent default form submission
 
         if (!email || !password) {
             setError("Please enter both email and password.");
@@ -19,7 +18,6 @@ function Register() {
         }
 
         try {
-            // Send POST request to register API
             const response = await fetch('http://localhost:5000/api/register', {
                 method: 'POST',
                 headers: {
@@ -32,15 +30,18 @@ function Register() {
 
             if (response.ok) {
                 console.log('Registration Successful');
+                toast.success('Registration Successful!');
+
                 navigate('/login');  // Redirect to login after successful registration
             } else {
                 setError(data.message || 'Registration failed.');
+                toast.error(data.message || 'Registration failed.');
             }
         } catch (err) {
             setError('An error occurred. Please try again.');
+            toast.error('An error occurred. Please try again.');
         }
     };
-
 
     return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
@@ -54,8 +55,8 @@ function Register() {
                             type="email"
                             id="email"
                             className="form-control"
-                            value={email} // Bind email state to the input field
-                            onChange={(e) => setEmail(e.target.value)} // Update state when user types
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                         />
                     </div>
@@ -67,13 +68,12 @@ function Register() {
                             type="password"
                             id="password"
                             className="form-control"
-                            value={password} // Bind password state to the input field
-                            onChange={(e) => setPassword(e.target.value)} // Update state when user types
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                         />
                     </div>
 
-                    {/* Display error message if any */}
                     {error && <div className="alert alert-danger">{error}</div>}
 
                     {/* Submit button for registration */}
@@ -82,7 +82,6 @@ function Register() {
                     </div>
                 </form>
 
-                {/* Link to navigate to login page */}
                 <div className="text-center mt-3">
                     <span>Already have an account?</span>
                     <button className="btn btn-link" onClick={() => navigate('/login')}>Login</button>

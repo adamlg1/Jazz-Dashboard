@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify'; // Import toast function
+import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -35,13 +37,13 @@ function Login() {
             } else {
                 // Handle successful login (e.g., redirect to the dashboard)
                 console.log('Login Successful');
+                toast.success('Login Successful!'); // Show success toast
                 navigate('/stats');
             }
         } catch (err) {
             setError('An error occurred. Please try again.');
         }
     };
-
 
     return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
