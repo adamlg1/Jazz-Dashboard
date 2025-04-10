@@ -1,13 +1,14 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify'; // Import toast function
-import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import toast CSS
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate();
+    const navigate = useNavigate();  // Use navigate to redirect
 
     const handleLogin = async (e) => {
         e.preventDefault();  // Prevent form from reloading the page
@@ -18,30 +19,32 @@ function Login() {
         }
 
         try {
-            const response = await fetch('https://xlfkzoepecetseykjhiu.supabase.co/auth/v1/token', {
+            const response = await fetch('http://localhost:5000/api/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',  // Make sure the content type is set to JSON
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    grant_type: 'password',  // This indicates it's a password-based login
-                    email: email,            // Email input value
-                    password: password,      // Password input value
-                }),
+                body: JSON.stringify({ email, password }), // Send email and password
             });
 
             const data = await response.json();
 
             if (data.error) {
-                setError(`Login failed: ${data.error_description}`);  // Display the error message from Supabase
+                setError(`Login failed: ${data.error}`);  // Display the error message from backend
+                toast.error(`Login failed: ${data.error}`); // Show a failure toast
             } else {
-                // Handle successful login (e.g., redirect to the dashboard)
+                // Handle successful login
                 console.log('Login Successful');
-                toast.success('Login Successful!'); // Show success toast
-                navigate('/stats');
+                const token = data.token;  // The backend should return the token
+                localStorage.setItem('authToken', token);  // Store token in localStorage
+                console.log(localStorage.getItem('authToken'))
+                console.log("**********************************")
+                toast.success('Login Successful!');  // Show success toast
+                navigate('/stats');  // Navigate to the stats page
             }
         } catch (err) {
             setError('An error occurred. Please try again.');
+            toast.error('An error occurred. Please try again.'); // Show error toast
         }
     };
 

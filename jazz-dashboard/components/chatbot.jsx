@@ -1,32 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../css/chat.css';
+import { toast } from 'react-toastify';
 
 function ChatBot() {
-    const [query, setQuery] = useState('');          // User's typed query
-    const [messages, setMessages] = useState([]);    // Track all messages (user and bot)
-    const [loading, setLoading] = useState(false);   // Track if bot is processing the query
-    const [statsData, setStatsData] = useState([]);  // To store player stats
-    const messagesEndRef = useRef(null);             // Reference to the end of the messages container
-    const inputRef = useRef(null);                    // Reference to the input (textarea) field
+    const [query, setQuery] = useState('');
+    const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [statsData, setStatsData] = useState([]);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
 
-    // Fetch player stats when the component is mounted
     useEffect(() => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            setIsAuthenticated(true);
+        } else {
+            setIsAuthenticated(false);
+        }
+    }, []);  // Runs only once when the component mounts
+
+    useEffect(() => {
+        if (!isAuthenticated) return;  // Don't fetch stats if the user is not authenticated!!!!! really don't
+
         const fetchStats = async () => {
+            const token = localStorage.getItem('authToken');
             try {
-                const res = await fetch('http://localhost:5000/api/stats');
+                const res = await fetch('http://localhost:5000/api/stats', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                if (!res.ok) {
+                    throw new Error('Unauthorized. Please log in.');
+                }
                 const data = await res.json();
-                setStatsData(data);  // Set the fetched stats data
+                setStatsData(data);
             } catch (error) {
                 console.error('Error fetching stats:', error);
+                toast.error('Please log in to access the stats.');
             }
         };
 
-        fetchStats();  // Call the function to fetch stats
-    }, []);
+        fetchStats();
+    }, [isAuthenticated]);
 
+    // Scroll to the bottom of the messages container
     useEffect(() => {
-        // Scroll to the bottom whenever the messages change
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
     }, [messages]); // Trigger scroll on messages change
 
     const handleSubmit = async () => {
@@ -36,34 +61,37 @@ function ChatBot() {
 
         // Add the user's message to the message history
         const newUserMessage = { role: "user", content: query };
-
-        // Add the user's message and immediately show "Asking..." for the bot
         setMessages(prevMessages => [...prevMessages, newUserMessage, { role: "bot", content: "Asking..." }]);
 
-        // Clear the query input field after the message is submitted
-        setQuery('');
+        setQuery(''); // Clear the input field
+
+        const token = localStorage.getItem('authToken');  // Get the JWT token from localStorage
+        console.log(token);
 
         try {
             const res = await fetch('http://localhost:5000/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
                 body: JSON.stringify({
-                    userQuery: query,  // User's query
-                    statsData: statsData  // Pass the stats data here
-                })
+                    userQuery: query,
+                    statsData: statsData,
+                }),
             });
 
             if (!res.ok) {
-                throw new Error('Server error');
+                throw new Error('Error with the server or invalid token');
             }
 
             const data = await res.json();
-            const botMessage = { role: "bot", content: data.answer };  // Prepare bot's response
+            const botMessage = { role: "bot", content: data.answer };
 
-            // Replace the last "Asking..." message with the bot's response, but keep the user's message
+            // Replace the last "Asking..." message with the bot's response
             setMessages(prevMessages => {
                 const updatedMessages = [...prevMessages];
-                updatedMessages[updatedMessages.length - 1] = botMessage; // Replace the last "Asking..." message
+                updatedMessages[updatedMessages.length - 1] = botMessage;
                 return updatedMessages;
             });
         } catch (error) {
@@ -71,7 +99,7 @@ function ChatBot() {
             const errorMessage = { role: "bot", content: 'Error fetching response from the server.' };
             setMessages(prevMessages => {
                 const updatedMessages = [...prevMessages];
-                updatedMessages[updatedMessages.length - 1] = errorMessage; // Replace the last "Asking..." message with an error message
+                updatedMessages[updatedMessages.length - 1] = errorMessage;
                 return updatedMessages;
             });
         } finally {
@@ -79,51 +107,51 @@ function ChatBot() {
         }
     };
 
-    // Handle pressing Enter key to submit the message
     const handleKeyPress = (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {  // Submit only when Enter is pressed without Shift
-            event.preventDefault(); // Prevent a new line from being added
+            event.preventDefault();
             handleSubmit();
         }
     };
 
-    // Handle the change in the textarea (to dynamically adjust the size)
     const handleInputChange = (event) => {
         setQuery(event.target.value);
-
-        // Resize the textarea based on content
         const textarea = inputRef.current;
-        textarea.style.height = "auto";  // Reset the height before calculating new height
-        textarea.style.height = `${textarea.scrollHeight}px`;  // Adjust height based on content
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
     return (
         <div className="chat-container">
             <div className="chat-box">
                 <div className="messages">
-                    {/* Loop through messages to display all */}
                     {messages.map((msg, index) => (
                         <div key={index} className={msg.role === "user" ? "user-message" : "bot-message"}>
                             {msg.content}
                         </div>
                     ))}
-                    {/* Empty div to scroll to the bottom */}
                     <div ref={messagesEndRef} />
                 </div>
                 <div className="input-container">
-                    <textarea
-                        ref={inputRef}
-                        className="chat-input"
-                        value={query}
-                        onChange={handleInputChange} // Handle the input change for dynamic resizing
-                        onKeyDown={handleKeyPress}  // Add event listener for Enter key
-                        placeholder="Ask me anything about Utah Jazz!"
-                        autoFocus
-                        rows={1}  // Start with 1 row (for initial height)
-                    />
-                    <button className="chat-send-button" onClick={handleSubmit} disabled={loading}>
-                        Send
-                    </button>
+                    {!isAuthenticated ? (
+                        <div>Please log in to access the chatbot.</div>
+                    ) : (
+                        <>
+                            <textarea
+                                ref={inputRef}
+                                className="chat-input"
+                                value={query}
+                                onChange={handleInputChange}
+                                onKeyDown={handleKeyPress}
+                                placeholder="Ask me anything about Utah Jazz!"
+                                autoFocus
+                                rows={1}
+                            />
+                            <button className="chat-send-button" onClick={handleSubmit} disabled={loading}>
+                                Send
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
