@@ -23,3 +23,13 @@ Please include any additional relevant information you'd like to include or have
 
 4/7
 Update - This website's focus has changed slightly from what it was before. Instead of storing everything on AWS, I have decided to use supabase so that I could gain experience using that. Currently, the script is able to scrape basketball reference, insert everything into supabase, and then the frontend is able to display those stats. The latest stats are fed to gpt, and I have a chatbot working right now. I might try to make it so the user can upload a background image for the chat in a settings tab. The next step is potentially storing the user chats, and implementing the login screen so that when unauthenticated, the user can only access the login and about pages. I'm hoping to come up with some other cool features before next Monday when I present as well. However, I have been able to make good progress on the website and believe it will seem pretty cool. At least 5th grade me would be proud.
+
+4/10 
+2 pm update - User login is working through supabase (you need to verify your account through their email), stats page is not accessible without logging in, chatbot is not available without logging in, and the MVP is here. The chatbot is using gpt 4o, and it is being fed the stats that are scraped from basketball reference.
+
+work to be completed - 
+* need to change the jwt token authentication from local storage to http cookies instead to prevent an XSS attack.
+* Set up cron job, and add filter to geet the stats by the date they were scraped
+* set up page to notify the user to login instead of just redirecting them to the login page when unauthorized
+* various toast messages to notify the user of what is going on
+* scraping more data from basketball reference and running more complex queries
