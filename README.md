@@ -1,5 +1,14 @@
 # Jazz-Dashboard
-Final Project for Database Modeling Concepts
+
+Chatbot in action -
+Did MJ push off? 
+![image](https://github.com/user-attachments/assets/7c4dc6d6-0b1c-43b8-b619-497435155b34)
+
+On the Lakers :O
+![image](https://github.com/user-attachments/assets/2df93529-13b2-4dc8-951b-2b6670aee17e)
+
+
+Here is proof that the chatbot is a good Utah Jazz expert. Getting it to say that MJ pushed off, and then having it explain why Jazz fans dislike the Lakers seem to be awesome tests, and the bot passed with flying colors.
 
 System Design -
 ![ChatGPT Image Apr 10, 2025, 10_47_05 PM](https://github.com/user-attachments/assets/fa68dbd5-8755-429b-9983-d359f27289eb)
@@ -40,7 +49,7 @@ How I would make this system scale -
 
 ![image](https://github.com/user-attachments/assets/73608ba0-44bb-49f0-8063-406595f2e12a)
 
-
+(Image was generated with AI to see how it would do after I wrote this description below)
 I would eventually hook up the system to AWS. There was not enough time in this project for me to get everything set up here. The node.js backend could scale using Amazon ELB, frontend could work using CDN (cloudfront), to scale the supabase database to a lot more users, I could use a Redis cache (or I could just switch to RDS). The OpenAI integration would have limitations, mostly because I am not rich. That feature would be money losing, and I would eventually have to restrict it to admins so that I wouldn't get broke paying for people to use it.
 
 
@@ -92,3 +101,6 @@ work to be completed -
 
 4/10 
 11 pm update - Presentation should be ready, I need to update the readme with screenshots/a screen recording of the website. This was a really fun project to do, and I have enjoyed working on it so far.
+
+4/11 
+My final touches before class ends included adding to the prompt for the chatbot to remember that MJ pushed off if it is ever asked. I added these to the top of the readme to improve the credibility of the chat bot.
