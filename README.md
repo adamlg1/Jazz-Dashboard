@@ -25,6 +25,9 @@ Key Learnings -
 
 How I would make this system scale -
 
+![image](https://github.com/user-attachments/assets/73608ba0-44bb-49f0-8063-406595f2e12a)
+
+
 I would eventually hook up the system to AWS. There was not enough time in this project for me to get everything set up here. The node.js backend could scale using Amazon ELB, frontend could work using CDN (cloudfront), to scale the supabase database to a lot more users, I could use a Redis cache (or I could just switch to RDS). The OpenAI integration would have limitations, mostly because I am not rich. That feature would be money losing, and I would eventually have to restrict it to admins so that I wouldn't get broke paying for people to use it.
 
 
