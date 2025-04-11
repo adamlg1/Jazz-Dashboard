@@ -66,7 +66,6 @@ app.post('/api/register', async (req, res) => {
 });
 
 
-// User Login
 app.post('/api/login', async (req, res) => {
     //username needed to be chnged to email - supabase needs email in the auth I'm doing
     const { email, password } = req.body;
@@ -111,14 +110,13 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
 
         console.log('Fetched Jazz stats:', data);
 
-        res.json(data);  // Send the player stats data as JSON
+        res.json(data);
     } catch (error) {
         console.error('Failed to fetch player stats:', error);
         res.status(500).json({ error: 'Failed to fetch player stats' });
     }
 });
 
-// Endpoint for the chatbot to interact with OpenAI
 app.post('/api/chat', authMiddleware, async (req, res) => {
     const { userQuery, statsData } = req.body;
 

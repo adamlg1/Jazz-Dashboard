@@ -2,16 +2,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Import toast CSS
+import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate();  // Use navigate to redirect
-
+    const navigate = useNavigate();
     const handleLogin = async (e) => {
-        e.preventDefault();  // Prevent form from reloading the page
+        e.preventDefault();
 
         if (!email || !password) {
             setError("Please enter both email and password.");
@@ -24,27 +23,26 @@ function Login() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password }), // Send email and password
+                body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
 
             if (data.error) {
-                setError(`Login failed: ${data.error}`);  // Display the error message from backend
-                toast.error(`Login failed: ${data.error}`); // Show a failure toast
+                setError(`Login failed: ${data.error}`);
+                toast.error(`Login failed: ${data.error}`);
             } else {
-                // Handle successful login
                 console.log('Login Successful');
-                const token = data.token;  // The backend should return the token
-                localStorage.setItem('authToken', token);  // Store token in localStorage
-                console.log(localStorage.getItem('authToken'))
-                console.log("**********************************")
-                toast.success('Login Successful!');  // Show success toast
-                navigate('/stats');  // Navigate to the stats page
+                const token = data.token;
+                localStorage.setItem('authToken', token);
+                // console.log(localStorage.getItem('authToken'))
+                // console.log("**********************************")
+                toast.success('Login Successful!');
+                navigate('/stats');
             }
         } catch (err) {
             setError('An error occurred. Please try again.');
-            toast.error('An error occurred. Please try again.'); // Show error toast
+            toast.error('An error occurred. Please try again.');
         }
     };
 

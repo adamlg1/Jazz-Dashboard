@@ -6,15 +6,12 @@ from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
-# Initialize Supabase client
 url = os.getenv("SUPABASE_URL")
 key = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(url, key)
 
-# URL for the Utah Jazz stats for the 2025 season
 url = "https://www.basketball-reference.com/teams/UTA/2025.html#per_game_stats"
 
 response = requests.get(url)
@@ -27,33 +24,26 @@ else:
 
 soup = BeautifulSoup(response.text, 'html.parser')
 
-# Find the correct table with id 'per_game_stats'
 table = soup.find('table', {'id': 'per_game_stats'})
 
-# Look for the 'thead' section for headers
 thead = table.find('thead')
 headers = [th.get_text() for th in thead.find_all('th')]
 
-# Print headers to inspect them
 print("Headers:", headers)
 
-# Now find the table rows and process the data
 rows = table.find_all('tr')
 
 stats_data = []
 
-# Loop through the rows and extract the relevant data
 for row in rows:
-    cols = row.find_all('td')  # Get all the data cells in the row
+    cols = row.find_all('td')  
     player_stats = [col.get_text() for col in cols]
 
-    if player_stats:  # Only include rows with actual player data (skip headers)
+    if player_stats:  # skip headers
         stats_data.append(player_stats)
 
-# Convert the data into a DataFrame, excluding the 'Rk' column (rank column)
 df = pd.DataFrame(stats_data, columns=headers[1:])  # Exclude the 'Rk' column
 
-# Add a column for the date the data was scraped
 df['date'] = datetime.today().strftime('%Y-%m-%d')
 
 # Function to handle empty or invalid numeric fields and convert them to None (NULL in DB)
@@ -70,7 +60,7 @@ def safe_int(value):
     except ValueError:
         return None
 
-# Loop through the DataFrame rows and insert each row into Supabase
+#insert into Supabase
 for index, row in df.iterrows():
     data = {
         'player_name': row['Player'],
@@ -105,7 +95,7 @@ for index, row in df.iterrows():
         'date': row['date']
     }
 
-    # Insert the row into the Supabase table using the correct syntax
+    # Insert w/ no syntax error
     response = supabase.table('jazz_stats').insert([data]).execute()
 
     if response.data:

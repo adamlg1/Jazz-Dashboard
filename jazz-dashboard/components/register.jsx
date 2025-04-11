@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify'; // Import toast function
-import 'react-toastify/dist/ReactToastify.css'; // Import styles for toast
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Register() {
     const [email, setEmail] = useState('');
@@ -10,7 +10,7 @@ function Register() {
     const navigate = useNavigate();
 
     const handleRegister = async (e) => {
-        e.preventDefault();  // Prevent default form submission
+        e.preventDefault();
 
         if (!email || !password) {
             setError("Please enter both email and password.");
@@ -23,16 +23,16 @@ function Register() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password }),  // Send email and password
+                body: JSON.stringify({ email, password }),
             });
 
-            const data = await response.json();  // Parse the response JSON
+            const data = await response.json();
 
             if (response.ok) {
                 console.log('Registration Successful');
                 toast.success('Registration Successful!');
 
-                navigate('/login');  // Redirect to login after successful registration
+                navigate('/login');
             } else {
                 setError(data.message || 'Registration failed.');
                 toast.error(data.message || 'Registration failed.');

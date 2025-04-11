@@ -1,7 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify'; // Import toast here
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function JazzStatsDashboard() {
@@ -12,11 +11,16 @@ function JazzStatsDashboard() {
     const [filterBy, setFilterBy] = useState('all');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigate = useNavigate();
+    // if you don't do this the toast shows up twice :/
+    const toastShown = useRef(false);
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         if (!token) {
-            // not authenticated
+            if (!toastShown.current) {
+                toast.info('Please log in to access the stats page.');
+                toastShown.current = true;
+            }
             navigate('/login');
         } else {
             setIsAuthenticated(true);
@@ -141,4 +145,3 @@ function JazzStatsDashboard() {
 }
 
 export default JazzStatsDashboard;
-
